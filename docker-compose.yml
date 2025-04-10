@@ -1,7 +1,7 @@
 version: "3"
 services:
   backend:
-    image: mean-backend:latest
+    image: surendergupta/mean-backend:latest
     container_name: mean-backend
     ports:
       - 5000:5000
@@ -11,7 +11,7 @@ services:
       - MONGO_URL=mongodb://mongo:27017/dd_db
   
   frontend:
-    image: mean-frontend:latest
+    image: surendergupta/mean-frontend:latest
     container_name: mean-frontend
     ports:
       - 8081:80
