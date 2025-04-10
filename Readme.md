@@ -172,6 +172,9 @@ docker build -t mean-frontend:latest .
 docker run -d -p 8081:80 mean-frontend:latest
 ```
 
+
+
+
 ---
 
 ## **Docker Compose Setup**
@@ -300,6 +303,35 @@ mongoose.set("strictQuery", false);
 ## **Access the Application**
 - **Backend API:** http://13.233.157.131/api/tutorials
 - **Frontend UI:** http://13.233.157.131/
+
+---
+## **Screenshots**
+
+1. EC2 VM
+![AWS Instance](./screenshots/aws_ec2_instance.png)
+![AWS Security Group](./screenshots/Security_group.png)
+
+2. GitHub Secrets
+![Github Secrets](./screenshots/github_secrets.png)
+
+3. GitActions
+![Github Action Log](./screenshots/gitaction_log.png)
+![Github Action Last Execution](./screenshots/last_git_action_flow.png)
+![Github Action Status](./screenshots/git_action_status.png)
+
+4. Docker Hub
+![Dockerhub Pushed Images](./screenshots/docker-hub-images.png)
+
+5. Docker Container using Docker-composer
+![Docker Composer Containers](./screenshots/docker-compose-container.png)
+
+6. Application Working
+
+![Nodejs Backend Application](./screenshots/TODO_APP_Frontpage.png)
+![Nodejs Backend Application](./screenshots/todo_app_addtodopage.png)
+![Nodejs Backend Application](./screenshots/todo_app_added_todopage.png)
+![Nodejs Backend Application](./screenshots/todo_app_new_add.png)
+![Nodejs Backend Application](./screenshots/todo_app_backend.png)
 
 ---
 
