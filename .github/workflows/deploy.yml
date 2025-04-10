@@ -35,3 +35,8 @@ jobs:
           script: |
             ls 
             pwd
+            docker pull surendergupta/mean-backend:latest
+            docker pull surendergupta/mean-frontend:latest
+            cd /home/ubuntu/mean-app/
+            docker-compose down
+            docker-compose up -d
