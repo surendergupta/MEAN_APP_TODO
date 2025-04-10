@@ -19,3 +19,19 @@ jobs:
           cd backend
           docker build -t surendergupta/mean-backend:latest .
           docker push surendergupta/mean-backend:latest
+
+      - name: Build and Push Frontend
+        run: |
+          cd frontend
+          docker build -t surendergupta/mean-frontend:latest .
+          docker push surendergupta/mean-frontend:latest
+
+      - name: Deploy on VM
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            ls 
+            pwd
