@@ -4,11 +4,103 @@ This repository contains a **MEAN (MongoDB, Express, Angular, Node.js) stack app
 
 ## Prerequisites
 Ensure you have the following installed before proceeding:
+- VM (AWS EC2)
 - [Docker](https://www.docker.com/get-started)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - Node.js (if running locally without Docker)
 
 ---
+## **AWS EC2 - Setup**
+### **1. Create EC2 Machine on AWS Mumbai Region**
+1. Create EC2 Machine config
+- OS: ubuntu
+- key: mumbai.pem
+- Security Group
+  - Ports
+  - 22
+  - 80
+  - 443
+  - 5000
+  - 8081
+
+2. Setup EC2
+```bash
+sudo apt update
+sudo apt-get install ca-certificates curl -y
+
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+sudo apt install docker-compose -y
+
+sudo usermod -aG docker $USER
+newgrp docker
+
+docker --version
+docker-compose --version
+docker ps
+
+chmod 600 ~/.ssh/authorized_keys
+chmod 700 ~/.ssh
+
+sudo apt install nginx -y
+
+```
+
+Change file `sudo nano /etc/ssh/sshd_config` uncomment line `PubkeyAuthentication yes`
+
+## **Nginx Reverse Proxy Setup**
+Create an Nginx config file `/etc/nginx/sites-available/mean-app:`
+```nginx
+server {
+    listen 80;
+
+    location / {
+        proxy_pass http://localhost:8081;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /api/ {
+        proxy_pass http://localhost:5000;  # Removed trailing slash
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+```
+
+Enable and restart:
+```bash
+sudo ln -s /etc/nginx/sites-available/mean-app /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+If error like: 
+```
+2025/04/10 13:47:01 [emerg] 5963#5963: open() "/etc/nginx/sites-enabled/default.old" failed (2: No such file or directory) in /etc/nginx/nginx.conf:60
+nginx: configuration file /etc/nginx/nginx.conf test failed
+
+```
+
+**Remove default File From** `sudo rm /etc/nginx/sites-enabled/default.old`
+**Test Nginx server** `sudo nginx -t`
+**Restart Nginx Server** `sudo systemctl restart nginx`
+**Check Status Nginx Server** `sudo systemctl status nginx`
+
 
 ## **Backend - Docker Setup**
 
@@ -102,6 +194,8 @@ services:
   
   frontend:
     image: mean-frontend:latest
+    environment:
+      - API_URL=http://13.233.157.131/api/tutorials
     container_name: mean-frontend
     ports:
       - "8081:80"
@@ -130,38 +224,15 @@ docker-compose up -d
 docker-compose down
 ```
 
-## **Nginx Reverse Proxy Setup**
-Create an Nginx config file `/etc/nginx/sites-available/mean-app:`
-```nginx
-server {
-    listen 80;
-    
-    location / {
-        proxy_pass http://localhost:80;
-    }
-
-    location /api/ {
-        proxy_pass http://localhost:5000/;
-    }
-}
-```
-
-Enable and restart:
-```bash
-sudo ln -s /etc/nginx/sites-available/mean-app /etc/nginx/sites-enabled/
-sudo systemctl restart nginx
-```
-
 ## **CI/CD Pipeline Setup**
 **GitHub Actions (`.github/workflows/deploy.yml`)**
 
 ```yaml
 name: CI/CD Pipeline
-
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build-and-deploy:
@@ -186,12 +257,15 @@ jobs:
           docker push surendergupta/mean-frontend:latest
 
       - name: Deploy on VM
-        uses: appleboy/ssh-action@v0.1.4
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VM_HOST }}
+          port: 22
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            ls 
+            pwd
             docker pull surendergupta/mean-backend:latest
             docker pull surendergupta/mean-frontend:latest
             cd /home/ubuntu/mean-app/
@@ -224,8 +298,8 @@ mongoose.set("strictQuery", false);
 ---
 
 ## **Access the Application**
-- **Backend API:** http://localhost:5000/api/tutorials
-- **Frontend UI:** http://localhost:8081
+- **Backend API:** http://13.233.157.131/api/tutorials
+- **Frontend UI:** http://13.233.157.131/
 
 ---
 
